@@ -88,6 +88,8 @@ module OpenAI
       if azure?
         base = File.join(@uri_base, path)
         "#{base}?api-version=#{@api_version}"
+      elsif @custom_path
+        File.join(@uri_base, @custom_path)
       else
         File.join(@uri_base, @api_version, path)
       end
