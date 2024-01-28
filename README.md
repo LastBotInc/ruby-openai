@@ -186,6 +186,41 @@ To use the [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/cognit
 
 where `AZURE_OPENAI_URI` is e.g. `https://custom-domain.openai.azure.com/openai/deployments/gpt-35-turbo`
 
+### Other chat completion APIs
+
+This gem also supports other chat API's, that are compatible to OpenAI API like Anthropic Claude, Perplexity AI and Mistral AI. Set custom path in order to use API path not exactly /v1/chat/completions.
+
+Anthropic Claude:
+```ruby
+    client = OpenAI::Client.new(
+        access_token: ENV.fetch("CLAUDE_API_KEY"),
+        uri_base = "https://api.anthropic.com",
+        custom_path: "v1/messages"
+    )
+    client.add_headers({
+        "x-api-key" => ENV.fetch("CLAUDE_API_KEY"),
+        "anthropic-version" => "2023-06-01",
+        "anthropic-beta" => "messages-2023-12-15"
+      })
+```
+
+Perplexity AI:
+```ruby
+    client = OpenAI::Client.new(
+        access_token: ENV.fetch("PERPLEXICY_KEY"),
+        uri_base = "https://api.perplexity.ai",
+        custom_path: "chat/completions"
+    )
+```
+
+Mistral AI:
+```ruby
+    client = OpenAI::Client.new(
+        access_token: ENV.fetch("MISTRAL_API_KEY"),
+        uri_base = "https://api.mistral.ai"
+    )
+```
+
 ### Counting Tokens
 
 OpenAI parses prompt text into [tokens](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them), which are words or portions of words. (These tokens are unrelated to your API access_token.) Counting tokens can help you estimate your [costs](https://openai.com/pricing). It can also help you ensure your prompt text size is within the max-token limits of your model's context window, and choose an appropriate [`max_tokens`](https://platform.openai.com/docs/api-reference/chat/create#chat/create-max_tokens) completion parameter so your response will fit as well.
@@ -504,12 +539,12 @@ To create a new assistant (see [API documentation](https://platform.openai.com/d
 response = client.assistants.create(
     parameters: {
         model: "gpt-3.5-turbo-1106",         # Retrieve via client.models.list. Assistants need 'gpt-3.5-turbo-1106' or later.
-        name: "OpenAI-Ruby test assistant", 
+        name: "OpenAI-Ruby test assistant",
         description: nil,
         instructions: "You are a helpful assistant for coding a OpenAI API client using the OpenAI-Ruby gem.",
         tools: [
             { type: 'retrieval' },           # Allow access to files attached using file_ids
-            { type: 'code_interpreter' },    # Allow access to Python code interpreter 
+            { type: 'code_interpreter' },    # Allow access to Python code interpreter
         ],
         "file_ids": ["file-123"],            # See Files section above for how to upload files
         "metadata": { my_internal_version_id: '1.0.0' }
@@ -553,7 +588,7 @@ Once you have created an assistant as described above, you need to prepare a `Th
 ```ruby
 # Create thread
 response = client.threads.create # Note: Once you create a thread, there is no way to list it
-                                 # or recover it currently (as of 2023-12-10). So hold onto the `id` 
+                                 # or recover it currently (as of 2023-12-10). So hold onto the `id`
 thread_id = response["id"]
 
 # Add initial message from user (see https://platform.openai.com/docs/api-reference/messages/createMessage)
@@ -602,7 +637,7 @@ The `status` response can include the following strings `queued`, `in_progress`,
 
 ```ruby
 while true do
-    
+
     response = client.runs.retrieve(id: run_id, thread_id: thread_id)
     status = response['status']
 
@@ -674,7 +709,7 @@ def get_current_weather(location:, unit: "celsius")
         return unit == "celsius" ? "The weather is nice 🌞 at 27°C" : "The weather is nice 🌞 at 80°F"
     else
         return unit == "celsius" ? "The weather is icy 🥶 at -5°C" : "The weather is icy 🥶 at 23°F"
-    end 
+    end
 end
 
 if status == 'requires_action'
@@ -688,7 +723,7 @@ if status == 'requires_action'
               tool.dig("function", "arguments"),
               { symbolize_names: true },
         )
-        
+
         tool_output = case function_name
         when "get_current_weather"
             get_current_weather(**arguments)
